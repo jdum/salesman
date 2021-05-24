@@ -7,7 +7,7 @@ from random import choice
 from time import time
 
 from .parameters import Parameters
-from .road import Road, mix_roads
+from .road import Road, mix_roads, optimize_abcd
 from .city import world_cities
 
 
@@ -41,7 +41,7 @@ def sort_pool(pool):
 
 def init_pool(p):
     cities = world_cities(p)
-    pool = list(Road.random(cities) for _i in range(p.get("pool_size")))
+    pool = list(optimize_abcd(Road.random(cities)) for _i in range(p.get("pool_size")))
     print(f"generated {len(pool)} random paths")
     return pool
 
@@ -67,7 +67,7 @@ def next_generation(round_nb, p, pool):
     nb_random = p.get("pool_add_random")
     cities = world_cities()
     for _i in range(nb_random):
-        pool.append(Road.random(cities))
+        pool.append(optimize_abcd(Road.random(cities)))
     # generate the pool by mixing
     # of 50% bests + 20 random
     new_pool = []
@@ -83,7 +83,7 @@ def next_generation(round_nb, p, pool):
                 cpt_err += 1
                 if cpt_err >= 10:
                     break
-            new_pool.append(mix_roads(a, b))
+            new_pool.append(optimize_abcd(mix_roads(a, b)))
         new_pool = uniq(sort_pool(new_pool))
         uniq_try -= 1
     pool = new_pool
@@ -109,7 +109,6 @@ def main():
         high_score = winner.length
     for r in pool:
         print(r.length)
-    line()
     for i in range(1, p.get("nb_rounds") + 1):
         t1 = time()
         pool = next_generation(i, p, pool)

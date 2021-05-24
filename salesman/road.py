@@ -37,7 +37,7 @@ class Road:
 
     def short_repr(self):
         return (
-            f"{int(self.length)} : {self.path[1]} {self.path[2]} "
+            f"{self.length:.1f} : {self.path[1]} {self.path[2]} "
             f"{self.path[3]}...{self.path[-1]}"
         )
 
@@ -119,6 +119,40 @@ class Road:
             path.append(node)
             nodes.add(node)
         return self.__class__(tuple(path))
+
+
+def optimize_abcd(road):
+    """optimize path for 4 points
+
+    when path is ABCD, check if ACBD whould be better
+    """
+    need_optimize = True
+    while need_optimize:
+        need_optimize = False
+        for i in range(len(road.xpath) - 3):
+            if check_optimal(road.xpath[i : i + 4]):
+                continue
+            else:
+                # swap
+                road = Road(
+                    road.path[: i + 1]
+                    + (road.path[i + 2],)
+                    + (road.path[i + 1],)
+                    + road.path[i + 3 :]
+                )
+                need_optimize = True
+                break
+    return road
+
+
+def check_optimal(path):
+    # assume len(path) == 4
+    a, b, c, d = path
+    if (distance(a, b) + distance(b, c) + distance(c, d)) <= (
+        distance(a, c) + distance(b, c) + distance(b, d)
+    ):
+        return True  # no change
+    return False
 
 
 def mix_roads(r1, r2):
